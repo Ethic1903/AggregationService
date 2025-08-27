@@ -9,14 +9,14 @@ type CreateSubscriptionRequest struct {
 	ServiceName string    `json:"service_name" validate:"required, min=1, max=255"`
 	Price       int       `json:"price" validate:"required, min=1"`
 	UserID      uuid.UUID `json:"user_id" validate:"required"`
-	StartDate   time.Time `json:"start_date" validate:"required,datetime=01-2006"`
-	EndDate     time.Time `json:"end_date,omitempty" validate:"omitempty,datetime=01-2006"`
+	StartDate   string    `json:"start_date" validate:"required,datetime=01-2006"`
+	EndDate     *string   `json:"end_date,omitempty" validate:"omitempty,datetime=01-2006"`
 }
 
 type CreateSubscriptionResponse struct {
-	ServiceName *string   `json:"service_name,omitempty" validate:"omitempty,min=1,max=255"`
-	Price       *int      `json:"price,omitempty" validate:"omitempty,min=1"`
-	EndDate     time.Time `json:"end_date,omitempty" validate:"omitempty,datetime=01-2006"`
+	ServiceName *string `json:"service_name,omitempty" validate:"omitempty,min=1,max=255"`
+	Price       *int    `json:"price,omitempty" validate:"omitempty,min=1"`
+	EndDate     *string `json:"end_date,omitempty" validate:"omitempty,datetime=01-2006"`
 }
 
 type SubscriptionResponse struct {
@@ -33,8 +33,8 @@ type SubscriptionResponse struct {
 type CalculateCostRequest struct {
 	UserID      *uuid.UUID `json:"user_id,omitempty"`
 	ServiceName *string    `json:"service_name,omitempty" validate:"omitempty,min=1,max=255"`
-	StartDate   time.Time  `json:"start_date" validate:"required,datetime=01-2006"`
-	EndDate     time.Time  `json:"end_date" validate:"required,datetime=01-2006"`
+	StartDate   string     `json:"start_date" validate:"required,datetime=01-2006"`
+	EndDate     string     `json:"end_date" validate:"required,datetime=01-2006"`
 }
 
 type CalculateCostResponse struct {
