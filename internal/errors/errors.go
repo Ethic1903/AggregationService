@@ -39,4 +39,6 @@ var (
 	ErrSubscriptionAlreadyFound = errors.New("this subscription already active")
 	ErrInvalidDateFormat        = errors.New("invalid date format")
 	ErrInternalServer           = errors.New("internal server error occurred")
+	ErrInvalidUUID              = errors.New("invalid UUID")
+	ErrNoSubscriptionsFound     = errors.New("0 subscriptions were found")
 )
