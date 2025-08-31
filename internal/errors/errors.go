@@ -41,4 +41,6 @@ var (
 	ErrInternalServer           = errors.New("internal server error occurred")
 	ErrInvalidUUID              = errors.New("invalid UUID")
 	ErrNoSubscriptionsFound     = errors.New("0 subscriptions were found")
+	ErrInvalidPagination        = errors.New("invalid pagination parameters")
+	ErrInvalidServiceName       = errors.New("invalid service name")
 )

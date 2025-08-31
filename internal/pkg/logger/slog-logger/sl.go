@@ -1,4 +1,4 @@
-package slog_logger
+package sloglogger
 
 import (
 	"log"

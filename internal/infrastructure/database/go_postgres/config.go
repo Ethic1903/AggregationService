@@ -10,13 +10,13 @@ type IPGConfig struct {
 	Driver string
 }
 
-func NewConfig() (*Config, error) {
+func NewPGConfig() (*IPGConfig, error) {
 	dsn := os.Getenv("PG_DSN")
 	driver := os.Getenv("PG_DRIVER")
 	if dsn == "" || driver == "" {
 		return nil, fmt.Errorf("could not get dsn/driver for db")
 	}
-	return &Config{
+	return &IPGConfig{
 		DSN:    dsn,
 		Driver: driver,
 	}, nil

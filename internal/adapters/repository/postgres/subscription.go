@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-const _tableSubscriptions = "subscriptions"
+const tableSubscriptions = "subscriptions"
 
 type subscriptionsRepository struct {
 	client *go_postgres.PostgresClient
@@ -28,7 +28,7 @@ func NewSubscriptionsRepository(client *go_postgres.PostgresClient) repository.I
 func (s *subscriptionsRepository) Create(ctx context.Context, subscription *entity.Subscription) (*entity.Subscription, error) {
 	const op = "repository.postgres.Create"
 	sq := s.client.Builder.
-		Insert(_tableSubscriptions).
+		Insert(tableSubscriptions).
 		Columns(
 			"id",
 			"service_name",
@@ -70,7 +70,7 @@ func (s *subscriptionsRepository) GetByID(ctx context.Context, id int) (*entity.
 	var sub *entity.Subscription
 	sq := s.client.Builder.
 		Select("*").
-		From(_tableSubscriptions).
+		From(tableSubscriptions).
 		Where(squirrel.Eq{"id": id})
 	query, args, err := sq.ToSql()
 	if err != nil {
@@ -90,7 +90,7 @@ func (s *subscriptionsRepository) GetAll(ctx context.Context, userID *uuid.UUID,
 	const op = "repository.postgres.GetAll"
 	sq := s.client.Builder.
 		Select("*").
-		From(_tableSubscriptions)
+		From(tableSubscriptions)
 	if userID != nil {
 		sq = sq.Where(squirrel.Eq{"user_id": userID})
 	}
@@ -115,7 +115,7 @@ func (s *subscriptionsRepository) GetAll(ctx context.Context, userID *uuid.UUID,
 func (s *subscriptionsRepository) Update(ctx context.Context, subscription *entity.Subscription) (*entity.Subscription, error) {
 	const op = "repository.postgres.Update"
 	sq := s.client.Builder.
-		Update(_tableSubscriptions).
+		Update(tableSubscriptions).
 		Set("service_name", subscription.ServiceName).
 		Set("price", subscription.Price).
 		Set("end_date", subscription.EndDate).
@@ -137,7 +137,7 @@ func (s *subscriptionsRepository) Update(ctx context.Context, subscription *enti
 func (s *subscriptionsRepository) Delete(ctx context.Context, id int) error {
 	const op = "repository.postgres.Delete"
 	sq := s.client.Builder.
-		Delete(_tableSubscriptions).
+		Delete(tableSubscriptions).
 		Where(squirrel.Eq{"id": id})
 	query, args, err := sq.ToSql()
 	if err != nil {
@@ -160,7 +160,7 @@ func (s *subscriptionsRepository) CalculateCost(ctx context.Context, userID *uui
 	const op = "repository.postgres.CalculateCost"
 	sq := s.client.Builder.
 		Select("COALESCE(SUM(price),0)").
-		From(_tableSubscriptions).
+		From(tableSubscriptions).
 		Where(squirrel.LtOrEq{"start_date": endDate}).
 		Where(squirrel.Or{
 			squirrel.Eq{"end_date": nil},
