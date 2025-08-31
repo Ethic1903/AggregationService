@@ -97,7 +97,7 @@ func (u *subscriptionUseCase) GetByID(ctx context.Context, id int) (*dto.Subscri
 	return u.converter.ToSubscriptionDTO(sub), nil
 }
 
-func (u *subscriptionUseCase) List(ctx context.Context, userID *uuid.UUID, serviceName *string, limit, offset int) ([]*dto.SubscriptionResponse, error) {
+func (u *subscriptionUseCase) GetAll(ctx context.Context, userID *uuid.UUID, serviceName *string, limit, offset int) ([]*dto.SubscriptionResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 
