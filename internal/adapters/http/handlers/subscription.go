@@ -21,6 +21,15 @@ func NewSubscriptionHandler(useCase subscription_usecase.ISubscriptionUseCase) *
 	return &SubscriptionHandler{useCase: useCase}
 }
 
+// @Summary Создать подписку
+// @Description Создает новую подписку для пользователя
+// @Tags subscriptions
+// @Accept json
+// @Produce json
+// @Param subscription body dto.CreateSubscriptionRequest true "Данные подписки"
+// @Success 201 {object} dto.SubscriptionResponse
+// @Failure 400,422 {string} string "Ошибка"
+// @Router /subscriptions [post]
 func (h *SubscriptionHandler) Create(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := logger.FromContext(ctx)
@@ -46,6 +55,15 @@ func (h *SubscriptionHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Получить подписку по ID
+// @Description Получить подписку по её идентификатору
+// @Tags Подписки
+// @Accept json
+// @Produce json
+// @Param id path int true "ID подписки"
+// @Success 200 {object} dto.SubscriptionResponse
+// @Failure 404,500 {string} string "Ошибка"
+// @Router /subscriptions/{id} [get]
 func (h *SubscriptionHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := logger.FromContext(ctx)
@@ -71,6 +89,18 @@ func (h *SubscriptionHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Получить все подписки
+// @Description Получить список всех подписок с фильтрами
+// @Tags Подписки
+// @Accept json
+// @Produce json
+// @Param user_id query string false "ID пользователя (UUID)"
+// @Param service_name query string false "Название сервиса"
+// @Param start_date query string false "Дата начала (mm-yyyy)"
+// @Param end_date query string false "Дата окончания (mm-yyyy)"
+// @Success 200 {array} dto.SubscriptionResponse
+// @Failure 400,500 {string} string "Ошибка"
+// @Router /subscriptions [get]
 func (h *SubscriptionHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := logger.FromContext(ctx)
@@ -113,11 +143,21 @@ func (h *SubscriptionHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Обновить подписку
+// @Description Обновить данные подписки
+// @Tags Подписки
+// @Accept json
+// @Produce json
+// @Param id path int true "ID подписки"
+// @Param subscription body dto.UpdateSubscriptionRequest true "Данные для обновления"
+// @Success 200 {object} dto.SubscriptionResponse
+// @Failure 400,404,422 {string} string "Ошибка"
+// @Router /subscriptions/{id} [put]
 func (h *SubscriptionHandler) Update(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := logger.FromContext(ctx)
 
-	idStr := r.URL.Query().Get("id") // или из mux vars
+	idStr := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		log.Error("invalid id", id, "err", err)
@@ -145,11 +185,20 @@ func (h *SubscriptionHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary Удалить подписку
+// @Description Удалить подписку по ID
+// @Tags Подписки
+// @Accept json
+// @Produce json
+// @Param id path int true "ID подписки"
+// @Success 204 {string} string "Удалено"
+// @Failure 404,500 {string} string "Ошибка"
+// @Router /subscriptions/{id} [delete]
 func (h *SubscriptionHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := logger.FromContext(ctx)
 
-	idStr := r.URL.Query().Get("id") // или из mux vars
+	idStr := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		log.Error("invalid id", "err", err)
@@ -166,6 +215,18 @@ func (h *SubscriptionHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// @Summary Посчитать суммарную стоимость подписок
+// @Description Посчитать суммарную стоимость подписок пользователя/сервиса за период
+// @Tags Подписки
+// @Accept json
+// @Produce json
+// @Param user_id query string false "ID пользователя (UUID)"
+// @Param service_name query string false "Название сервиса"
+// @Param start_date query string true "Дата начала периода (mm-yyyy)"
+// @Param end_date query string true "Дата окончания периода (mm-yyyy)"
+// @Success 200 {object} map[string]int
+// @Failure 400,500 {string} string "Ошибка"
+// @Router /subscriptions/cost [get]
 func (h *SubscriptionHandler) CalculateCost(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := logger.FromContext(ctx)

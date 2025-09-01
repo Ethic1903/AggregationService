@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"net/http"
 	"os"
 	"os/signal"
@@ -27,6 +28,12 @@ type App struct {
 
 func New(ctx context.Context, cfg *config.Config, provider *Provider) *App {
 	subHandler := provider.Handler(ctx)
+
+	swaggerRouter := chi.NewRouter()
+	swaggerRouter.Get("/*", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"),
+	))
+
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -35,6 +42,8 @@ func New(ctx context.Context, cfg *config.Config, provider *Provider) *App {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(5 * time.Second))
 	r.Use(middleware2.HeadersMiddleware)
+
+	r.Mount("/swagger", swaggerRouter)
 
 	r.Route("/subscriptions", func(r chi.Router) {
 		r.Post("/", subHandler.Create)

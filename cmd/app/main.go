@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "AggregationService/docs"
 	"AggregationService/internal/app"
 	"AggregationService/internal/config"
 	"AggregationService/internal/pkg/logger"
