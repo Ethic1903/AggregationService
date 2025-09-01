@@ -24,12 +24,12 @@ func NewPGClient(ctx context.Context, cfg IPGConfig) (*PostgresClient, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	logger.FromContext(ctx).
-		Debug(fmt.Sprintf("pinging database with dsn: %w", cfg.DSN))
+		Debug(fmt.Sprintf("pinging database with dsn: %s", cfg.DSN))
 	if err := db.PingContext(ctx); err != nil {
 		return nil, fmt.Errorf("db ping: %w", err)
 	}
 	logger.FromContext(ctx).
-		Debug(fmt.Sprintf("successfully connected to db: %w", cfg.DSN))
+		Debug(fmt.Sprintf("successfully connected to db: %s", cfg.DSN))
 	return &PostgresClient{
 		DB:      db,
 		Builder: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),

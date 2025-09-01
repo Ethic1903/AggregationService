@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+//go:generate mockery --name=ISubscriptionRepository --output=./mocks --case=underscore
 type ISubscriptionRepository interface {
 	Create(ctx context.Context, subscription *entity.Subscription) (*entity.Subscription, error)
 	GetByID(ctx context.Context, id int) (*entity.Subscription, error)
