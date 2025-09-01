@@ -4,10 +4,13 @@ import (
 	"AggregationService/internal/domain/models/dto"
 	"AggregationService/internal/domain/usecase/subscription_usecase"
 	"AggregationService/internal/pkg/logger"
+	"AggregationService/internal/pkg/utils"
 	"encoding/json"
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type SubscriptionHandler struct {
@@ -29,7 +32,7 @@ func (h *SubscriptionHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sub, err := h.useCase.Create(ctx, req)
+	sub, err := h.useCase.Create(ctx, &req)
 	if err != nil {
 		log.Error("failed to create subscription", "err", err)
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
@@ -47,7 +50,7 @@ func (h *SubscriptionHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := logger.FromContext(ctx)
 
-	idStr := r.URL.Query().Get("id") // или из mux vars
+	idStr := chi.URLParam(r, "id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		log.Error("invalid id", "err", err)
@@ -68,7 +71,6 @@ func (h *SubscriptionHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GET /subscriptions
 func (h *SubscriptionHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := logger.FromContext(ctx)
@@ -88,10 +90,9 @@ func (h *SubscriptionHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	if sn := r.URL.Query().Get("service_name"); sn != "" {
 		serviceName = &sn
 	}
+	limit = 100
 	if l := r.URL.Query().Get("limit"); l != "" {
-		if v, err := strconv.Atoi(l); err == nil {
-			limit = v
-		}
+		limit, _ = strconv.Atoi(l)
 	}
 	if o := r.URL.Query().Get("offset"); o != "" {
 		if v, err := strconv.Atoi(o); err == nil {
@@ -112,7 +113,6 @@ func (h *SubscriptionHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// PUT /subscriptions/{id}
 func (h *SubscriptionHandler) Update(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := logger.FromContext(ctx)
@@ -132,7 +132,7 @@ func (h *SubscriptionHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sub, err := h.useCase.Update(ctx, req)
+	sub, err := h.useCase.Update(ctx, id, &req)
 	if err != nil {
 		log.Error("failed to update subscription", "err", err)
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
@@ -145,7 +145,6 @@ func (h *SubscriptionHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// DELETE /subscriptions/{id}
 func (h *SubscriptionHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := logger.FromContext(ctx)
@@ -167,7 +166,6 @@ func (h *SubscriptionHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// GET /subscriptions/cost
 func (h *SubscriptionHandler) CalculateCost(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := logger.FromContext(ctx)
@@ -175,8 +173,8 @@ func (h *SubscriptionHandler) CalculateCost(w http.ResponseWriter, r *http.Reque
 	var (
 		userID      *uuid.UUID
 		serviceName *string
-		startDate   string
-		endDate     string
+		startDate   *time.Time
+		endDate     *time.Time
 	)
 
 	if userIDStr := r.URL.Query().Get("user_id"); userIDStr != "" {
@@ -187,8 +185,23 @@ func (h *SubscriptionHandler) CalculateCost(w http.ResponseWriter, r *http.Reque
 	if sn := r.URL.Query().Get("service_name"); sn != "" {
 		serviceName = &sn
 	}
-	startDate = r.URL.Query().Get("start_date")
-	endDate = r.URL.Query().Get("end_date")
+
+	if sdStr := r.URL.Query().Get("start_date"); sdStr != "" {
+		sd, err := utils.ParseMonthYearToTime(sdStr)
+		if err != nil {
+			http.Error(w, "invalid start_date", http.StatusBadRequest)
+			return
+		}
+		startDate = &sd
+	}
+	if edStr := r.URL.Query().Get("end_date"); edStr != "" {
+		ed, err := utils.ParseMonthYearToTime(edStr)
+		if err != nil {
+			http.Error(w, "invalid end_date", http.StatusBadRequest)
+			return
+		}
+		endDate = &ed
+	}
 
 	cost, err := h.useCase.CalculateCost(ctx, userID, serviceName, startDate, endDate)
 	if err != nil {

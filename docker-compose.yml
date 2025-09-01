@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  app:
+    container_name: aggregation_app
+    build: .
+    restart: always
+    depends_on:
+      - db
+    environment:
+      - PG_DSN=${PG_DSN}
+      - SERVER_HOST=${SERVER_HOST}
+      - SERVER_PORT=${SERVER_PORT}
+      - LOG_LEVEL=${LOG_LEVEL}
+    ports:
+      - "${SERVER_PORT}:7071"
+    networks:
+      - aggregation_network
+
+  db:
+    container_name: aggregation_db
+    image: postgres:15
+    restart: always
+    volumes:
+      - data:/var/lib/postgresql/data
+      - ../internal/migrations/subscription:/docker-entrypoint-initdb.d:ro
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - "5433:5432"
+    networks:
+      - aggregation_network
+
+volumes:
+  data:
+
+networks:
+  aggregation_network:
+    driver: bridge

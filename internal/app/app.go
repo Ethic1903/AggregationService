@@ -2,6 +2,7 @@ package app
 
 import (
 	"AggregationService/internal/config"
+	"AggregationService/internal/migrations"
 	"AggregationService/internal/pkg/logger"
 	sloglogger "AggregationService/internal/pkg/logger/slog-logger"
 	middleware2 "AggregationService/internal/pkg/middleware"
@@ -25,7 +26,7 @@ type App struct {
 }
 
 func New(ctx context.Context, cfg *config.Config, provider *Provider) *App {
-	subHandler := provider.handler
+	subHandler := provider.Handler(ctx)
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -35,7 +36,6 @@ func New(ctx context.Context, cfg *config.Config, provider *Provider) *App {
 	r.Use(middleware.Timeout(5 * time.Second))
 	r.Use(middleware2.HeadersMiddleware)
 
-	// --- ROUTES ---
 	r.Route("/subscriptions", func(r chi.Router) {
 		r.Post("/", subHandler.Create)
 		r.Get("/", subHandler.GetAll)
@@ -52,11 +52,19 @@ func New(ctx context.Context, cfg *config.Config, provider *Provider) *App {
 		Handler: r,
 	}
 
-	return &App{httpServer: srv}
+	return &App{
+		httpServer: srv,
+		provider:   provider,
+	}
 }
 
 func (a *App) Run(ctx context.Context) error {
 	idleConnsClosed := make(chan struct{})
+
+	if err := migrations.MigrateDB(a.provider.PGClient(ctx)); err != nil {
+		return fmt.Errorf("migrate db: %v", err)
+	}
+
 	go func() {
 		sigint := make(chan os.Signal, 1)
 		signal.Notify(sigint, syscall.SIGINT, syscall.SIGTERM)

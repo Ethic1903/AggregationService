@@ -40,7 +40,7 @@ func (p *Provider) PGConfig() *go_postgres.IPGConfig {
 
 func (p *Provider) PGClient(ctx context.Context) *go_postgres.PostgresClient {
 	if p.pgClient == nil {
-		client, err := go_postgres.NewPGClient(ctx, *p.pgConfig)
+		client, err := go_postgres.NewPGClient(ctx, *p.PGConfig())
 		if err != nil {
 			panic(err)
 		}
@@ -58,7 +58,11 @@ func (p *Provider) SubscriptionRepo(ctx context.Context) repository.ISubscriptio
 
 func (p *Provider) UseCase(ctx context.Context) subscription_usecase.ISubscriptionUseCase {
 	if p.usecase == nil {
-		p.usecase = subscription_usecase.New(p.SubscriptionRepo(ctx), p.validator, p.converter)
+		p.usecase = subscription_usecase.New(
+			p.SubscriptionRepo(ctx),
+			p.Validator(),
+			p.Converter(),
+		)
 	}
 	return p.usecase
 }
@@ -74,9 +78,9 @@ func (p *Provider) ServerConfig() server.IServerConfig {
 	return p.serverConfig
 }
 
-func (p *Provider) Handler() *handlers.SubscriptionHandler {
+func (p *Provider) Handler(ctx context.Context) *handlers.SubscriptionHandler {
 	if p.handler == nil {
-		p.handler = handlers.NewSubscriptionHandler(p.usecase)
+		p.handler = handlers.NewSubscriptionHandler(p.UseCase(ctx))
 	}
 	return p.handler
 }

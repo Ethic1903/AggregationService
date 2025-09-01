@@ -30,7 +30,6 @@ func (s *subscriptionsRepository) Create(ctx context.Context, subscription *enti
 	sq := s.client.Builder.
 		Insert(tableSubscriptions).
 		Columns(
-			"id",
 			"service_name",
 			"price",
 			"user_id",
@@ -40,7 +39,6 @@ func (s *subscriptionsRepository) Create(ctx context.Context, subscription *enti
 			"updated_at",
 		).
 		Values(
-			subscription.ID,
 			subscription.ServiceName,
 			subscription.Price,
 			subscription.UserID,
@@ -67,7 +65,7 @@ func (s *subscriptionsRepository) Create(ctx context.Context, subscription *enti
 
 func (s *subscriptionsRepository) GetByID(ctx context.Context, id int) (*entity.Subscription, error) {
 	const op = "repository.postgres.GetByID"
-	var sub *entity.Subscription
+	var sub entity.Subscription
 	sq := s.client.Builder.
 		Select("*").
 		From(tableSubscriptions).
@@ -83,7 +81,7 @@ func (s *subscriptionsRepository) GetByID(ctx context.Context, id int) (*entity.
 		}
 		return nil, fmt.Errorf("%s: query error: %w", op, err)
 	}
-	return sub, nil
+	return &sub, nil
 }
 
 func (s *subscriptionsRepository) GetAll(ctx context.Context, userID *uuid.UUID, serviceName *string, limit, offset int) ([]*entity.Subscription, error) {
@@ -156,7 +154,7 @@ func (s *subscriptionsRepository) Delete(ctx context.Context, id int) error {
 	return nil
 }
 
-func (s *subscriptionsRepository) CalculateCost(ctx context.Context, userID *uuid.UUID, serviceName *string, startDate, endDate string) (int, error) {
+func (s *subscriptionsRepository) CalculateCost(ctx context.Context, userID *uuid.UUID, serviceName *string, startDate, endDate *time.Time) (int, error) {
 	const op = "repository.postgres.CalculateCost"
 	sq := s.client.Builder.
 		Select("COALESCE(SUM(price),0)").

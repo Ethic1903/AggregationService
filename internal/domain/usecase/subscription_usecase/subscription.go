@@ -34,7 +34,7 @@ func (u *subscriptionUseCase) Create(ctx context.Context, req *dto.CreateSubscri
 			return nil, custom_err.ErrSubscriptionAlreadyFound
 		}
 		log.Error(fmt.Sprintf("failed to create subscription: %v", err))
-		return nil, custom_err.ErrInternalServer
+		return nil, custom_err.ErrInvalidRequest
 	}
 
 	log.Debug(fmt.Sprintf("success create subscription: %+v", createdSub))
@@ -46,7 +46,7 @@ func (u *subscriptionUseCase) Update(ctx context.Context, id int, req *dto.Updat
 	defer cancel()
 
 	log := logger.FromContext(ctx)
-	log.Debug(fmt.Sprintf("trying to update subscription: id=%d, req=%+v", id, req))
+	log.Debug(fmt.Sprintf("trying to update subscription: id=%d", req))
 
 	if err := u.validator.Validate(req); err != nil {
 		log.Error(fmt.Sprintf("invalid input: %v", custom_err.ErrInvalidRequest))
@@ -60,7 +60,7 @@ func (u *subscriptionUseCase) Update(ctx context.Context, id int, req *dto.Updat
 			return nil, custom_err.ErrSubscriptionNotFound
 		}
 		log.Error(fmt.Sprintf("failed to get subscription for update: %v", err))
-		return nil, custom_err.ErrInternalServer
+		return nil, custom_err.ErrInvalidRequest
 	}
 
 	u.converter.ApplyUpdateToEntity(sub, req)
@@ -69,7 +69,7 @@ func (u *subscriptionUseCase) Update(ctx context.Context, id int, req *dto.Updat
 	updatedSub, err := u.subscriptionRepository.Update(ctx, sub)
 	if err != nil {
 		log.Error(fmt.Sprintf("failed to update subscription: %v", err))
-		return nil, custom_err.ErrInternalServer
+		return nil, custom_err.ErrInvalidRequest
 	}
 
 	log.Debug(fmt.Sprintf("success update subscription: id=%d", id))
@@ -90,7 +90,7 @@ func (u *subscriptionUseCase) GetByID(ctx context.Context, id int) (*dto.Subscri
 			return nil, custom_err.ErrSubscriptionNotFound
 		}
 		log.Error(fmt.Sprintf("failed to get subscription by id: %v", err))
-		return nil, custom_err.ErrInternalServer
+		return nil, custom_err.ErrSubscriptionNotFound
 	}
 
 	log.Debug(fmt.Sprintf("success get subscription by id: %d", id))
@@ -131,14 +131,14 @@ func (u *subscriptionUseCase) Delete(ctx context.Context, id int) error {
 			return custom_err.ErrSubscriptionNotFound
 		}
 		log.Error(fmt.Sprintf("failed to delete subscription: %v", err))
-		return custom_err.ErrInternalServer
+		return custom_err.ErrSubscriptionNotFound
 	}
 
 	log.Debug(fmt.Sprintf("success delete subscription: id=%d", id))
 	return nil
 }
 
-func (u *subscriptionUseCase) CalculateCost(ctx context.Context, userID *uuid.UUID, serviceName *string, startDate, endDate string) (int, error) {
+func (u *subscriptionUseCase) CalculateCost(ctx context.Context, userID *uuid.UUID, serviceName *string, startDate, endDate *time.Time) (int, error) {
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 

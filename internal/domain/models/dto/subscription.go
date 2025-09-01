@@ -6,8 +6,8 @@ import (
 )
 
 type CreateSubscriptionRequest struct {
-	ServiceName string    `json:"service_name" validate:"required, min=1, max=255"`
-	Price       int       `json:"price" validate:"required, min=1"`
+	ServiceName string    `json:"service_name" validate:"required,min=1,max=255"`
+	Price       int       `json:"price" validate:"required,min=1"`
 	UserID      uuid.UUID `json:"user_id" validate:"required,uuid4"`
 	StartDate   string    `json:"start_date" validate:"required,mmYYYY"`
 	EndDate     *string   `json:"end_date,omitempty" validate:"omitempty,mmYYYY"`

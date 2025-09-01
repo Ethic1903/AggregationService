@@ -3,6 +3,8 @@ package converters
 import (
 	"AggregationService/internal/domain/models/dto"
 	"AggregationService/internal/domain/models/entity"
+	"AggregationService/internal/pkg/utils"
+	"time"
 )
 
 type SubscriptionConverter struct {
@@ -13,12 +15,18 @@ func New() *SubscriptionConverter {
 }
 
 func (c *SubscriptionConverter) ToSubscriptionEntity(req *dto.CreateSubscriptionRequest) *entity.Subscription {
+	startDate, _ := utils.ParseMonthYearToTime(req.StartDate)
+	var endDate *time.Time
+	if req.EndDate != nil {
+		ed, _ := utils.ParseMonthYearToTime(*req.EndDate)
+		endDate = &ed
+	}
 	return &entity.Subscription{
 		ServiceName: req.ServiceName,
 		Price:       req.Price,
 		UserID:      req.UserID,
-		StartDate:   req.StartDate,
-		EndDate:     req.EndDate,
+		StartDate:   startDate,
+		EndDate:     endDate,
 	}
 }
 
@@ -28,10 +36,16 @@ func (c *SubscriptionConverter) ToSubscriptionDTO(sub *entity.Subscription) *dto
 		ServiceName: sub.ServiceName,
 		Price:       sub.Price,
 		UserID:      sub.UserID,
-		StartDate:   sub.StartDate,
-		EndDate:     sub.EndDate,
-		CreatedAt:   sub.CreatedAt,
-		UpdatedAt:   sub.UpdatedAt,
+		StartDate:   utils.TimeToMonthYear(sub.StartDate),
+		EndDate: func() *string {
+			if sub.EndDate == nil {
+				return nil
+			}
+			s := utils.TimeToMonthYear(*sub.EndDate)
+			return &s
+		}(),
+		CreatedAt: sub.CreatedAt,
+		UpdatedAt: sub.UpdatedAt,
 	}
 }
 
@@ -43,7 +57,8 @@ func (c *SubscriptionConverter) ApplyUpdateToEntity(sub *entity.Subscription, re
 		sub.Price = *req.Price
 	}
 	if req.EndDate != nil {
-		sub.EndDate = req.EndDate
+		ed, _ := utils.ParseMonthYearToTime(*req.EndDate)
+		sub.EndDate = &ed
 	}
 }
 

@@ -3,9 +3,11 @@ package go_postgres
 import (
 	"AggregationService/internal/pkg/logger"
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 	"time"
 )
 
@@ -32,4 +34,8 @@ func NewPGClient(ctx context.Context, cfg IPGConfig) (*PostgresClient, error) {
 		DB:      db,
 		Builder: squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar),
 	}, nil
+}
+
+func (p *PostgresClient) SQLDB() *sql.DB {
+	return p.DB.DB
 }
